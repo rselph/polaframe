@@ -19,7 +19,7 @@ import (
 
 const (
 	thinBorder  = 0.05
-	thickBorder = 0.25
+	thickBorder = 0.277778
 )
 
 func main() {
