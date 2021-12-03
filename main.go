@@ -62,7 +62,12 @@ func doOneFrame(fname string) {
 	}
 
 	inBounds := inImage.Bounds()
-	scaledThinBorder := int(float64(inBounds.Dx()) * thinBorder)
+	var scaledThinBorder int
+	if inBounds.Dx() < inBounds.Dy() {
+		scaledThinBorder = int(float64(inBounds.Dx()) * thinBorder)
+	} else {
+		scaledThinBorder = int(float64(inBounds.Dy()) * thinBorder)
+	}
 	scaledThickBorder := int(float64(inBounds.Dy()) * thickBorder)
 
 	outBounds := image.Rect(
