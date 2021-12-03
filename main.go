@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	"golang.org/x/image/draw"
@@ -74,7 +75,7 @@ func doOneFrame(fname string) {
 	draw.Copy(outImage, outBounds.Min, background, outBounds, draw.Over, nil)
 	draw.Copy(outImage, inBounds.Min, inImage, inBounds, draw.Over, nil)
 
-	fname += ".tiff"
+	fname = reSuffix(fname, "pola.tiff")
 	w, err := os.Create(fname)
 	if err != nil {
 		log.Println(err)
@@ -90,4 +91,15 @@ func doOneFrame(fname string) {
 		log.Println(err)
 		return
 	}
+}
+
+func reSuffix(fname, suffix string) string {
+	segs := strings.Split(fname, ".")
+	if len(segs) > 1 {
+		segs[len(segs)-1] = suffix
+	} else {
+		segs = append(segs, suffix)
+	}
+
+	return strings.Join(segs, ".")
 }
