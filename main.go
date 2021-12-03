@@ -2,8 +2,18 @@ package main
 
 import (
 	"flag"
+	"image"
+	"image/color"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"log"
+	"os"
 	"runtime"
 	"sync"
+
+	"golang.org/x/image/draw"
+	"golang.org/x/image/tiff"
 )
 
 const (
@@ -24,6 +34,7 @@ func main() {
 	for _, fname := range flag.Args() {
 		jobs <- fname
 	}
+	close(jobs)
 	wg.Wait()
 }
 
@@ -36,5 +47,47 @@ func worker(jobs chan string, wg *sync.WaitGroup) {
 }
 
 func doOneFrame(fname string) {
+	f, err := os.Open(fname)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer f.Close()
 
+	inImage, _, err := image.Decode(f)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	inBounds := inImage.Bounds()
+	scaledThinBorder := int(float64(inBounds.Dx()) * thinBorder)
+	scaledThickBorder := int(float64(inBounds.Dy()) * thickBorder)
+
+	outBounds := image.Rect(
+		inBounds.Min.X-scaledThinBorder, inBounds.Min.Y-scaledThinBorder,
+		inBounds.Max.X+scaledThinBorder, inBounds.Max.Y+scaledThickBorder)
+
+	background := image.NewUniform(color.White)
+
+	outImage := image.NewRGBA64(outBounds)
+	draw.Copy(outImage, outBounds.Min, background, outBounds, draw.Over, nil)
+	draw.Copy(outImage, inBounds.Min, inImage, inBounds, draw.Over, nil)
+
+	fname += ".tiff"
+	w, err := os.Create(fname)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer w.Close()
+
+	err = tiff.Encode(w, outImage, &tiff.Options{
+		Compression: tiff.Deflate,
+		Predictor:   true,
+	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
 }
