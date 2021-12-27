@@ -18,8 +18,16 @@ import (
 )
 
 const (
-	thinBorder  = 0.05
-	thickBorder = 0.277778
+	topBorder    = 1.0 / 11.0
+	bottomBorder = 3.0 / 11.0
+
+	// .8 = outsideX / outsideY
+	// outsideX = .8 * outsideY
+	// sideBorder * 2 + 1 = .8 (topBorder + bottomBorder + 1)
+	// ''                 = .8 (topBorder + bottomBorder) + .8
+	// sideBorder * 2 = .8 (topBorder+bottomBorder) - .2
+	// sideBorder = .4(topBorder+bottomBorder) - .1
+	sideBorder = .4*(topBorder+bottomBorder) - .1
 )
 
 func main() {
@@ -62,17 +70,14 @@ func doOneFrame(fname string) {
 	}
 
 	inBounds := inImage.Bounds()
-	var scaledThinBorder int
-	if inBounds.Dx() < inBounds.Dy() {
-		scaledThinBorder = int(float64(inBounds.Dx()) * thinBorder)
-	} else {
-		scaledThinBorder = int(float64(inBounds.Dy()) * thinBorder)
-	}
-	scaledThickBorder := int(float64(inBounds.Dy()) * thickBorder)
+	var scaledSideBorder int
+	scaledSideBorder = int(float64(inBounds.Dx()) * sideBorder)
+	scaledTopBorder := int(float64(inBounds.Dy()) * topBorder)
+	scaledBottomBorder := int(float64(inBounds.Dy()) * bottomBorder)
 
 	outBounds := image.Rect(
-		inBounds.Min.X-scaledThinBorder, inBounds.Min.Y-scaledThinBorder,
-		inBounds.Max.X+scaledThinBorder, inBounds.Max.Y+scaledThickBorder)
+		inBounds.Min.X-scaledSideBorder, inBounds.Min.Y-scaledTopBorder,
+		inBounds.Max.X+scaledSideBorder, inBounds.Max.Y+scaledBottomBorder)
 
 	background := image.NewUniform(color.White)
 
