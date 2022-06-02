@@ -18,16 +18,10 @@ import (
 )
 
 const (
-	topBorder    = 1.0 / 11.0
-	bottomBorder = 3.0 / 11.0
+	topBorder    = 1.0 / 12.0
+	bottomBorder = 5.0 / 18.0
 
-	// .8 = outsideX / outsideY
-	// outsideX = .8 * outsideY
-	// sideBorder * 2 + 1 = .8 (topBorder + bottomBorder + 1)
-	// ''                 = .8 (topBorder + bottomBorder) + .8
-	// sideBorder * 2 = .8 (topBorder+bottomBorder) - .2
-	// sideBorder = .4(topBorder+bottomBorder) - .1
-	sideBorder = .4*(topBorder+bottomBorder) - .1
+	sideBorder = 1.0 / 13.0
 )
 
 func main() {
@@ -70,8 +64,7 @@ func doOneFrame(fname string) {
 	}
 
 	inBounds := inImage.Bounds()
-	var scaledSideBorder int
-	scaledSideBorder = int(float64(inBounds.Dx()) * sideBorder)
+	scaledSideBorder := int(float64(inBounds.Dx()) * sideBorder)
 	scaledTopBorder := int(float64(inBounds.Dy()) * topBorder)
 	scaledBottomBorder := int(float64(inBounds.Dy()) * bottomBorder)
 
