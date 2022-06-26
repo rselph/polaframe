@@ -26,7 +26,12 @@ const (
 	fileSuffix = "pola.tif"
 )
 
+var (
+	edgeRatio float64
+)
+
 func main() {
+	flag.Float64Var(&edgeRatio, "r", 1, "edge blur in milli-widths")
 	flag.Parse()
 
 	wg := &sync.WaitGroup{}
@@ -78,13 +83,33 @@ func doOneFrame(fName string) {
 		inBounds.Min.X-scaledSideBorder, inBounds.Min.Y-scaledTopBorder,
 		inBounds.Max.X+scaledSideBorder, inBounds.Max.Y+scaledBottomBorder)
 
-	background := image.NewUniform(color.White)
-
 	outImage := image.NewRGBA64(outBounds)
-	draw.Copy(outImage, outBounds.Min, background, outBounds, draw.Over, nil)
+
+	// Draw background
+	white := image.NewUniform(color.White)
+	draw.Copy(outImage, outBounds.Min, white, outBounds, draw.Over, nil)
+
+	// Draw main image
 	draw.Copy(outImage, inBounds.Min, inImage, inBounds, draw.Over, nil)
 
-	fName = reSuffix(fName, fileSuffix)
+	// Create blurred image
+	edgePixels := float64(inBounds.Dx()) * (edgeRatio / 1000)
+	blur := gaussianBlur(outImage, edgePixels)
+
+	// Create destination mask
+	mask := image.NewRGBA64(outBounds)
+	draw.Copy(mask, outBounds.Min, image.Opaque, outBounds, draw.Over, nil)
+	draw.Copy(mask, inBounds.Min, image.Transparent, inBounds, draw.Src, nil)
+
+	// Overlay blurred image using mask
+	draw.Copy(outImage, outBounds.Min, blur, outBounds, draw.Over, &draw.Options{
+		DstMask: mask,
+	})
+
+	saveImage(outImage, reSuffix(fName, fileSuffix))
+}
+
+func saveImage(i image.Image, fName string) {
 	w, err := os.Create(fName)
 	if err != nil {
 		log.Println(err)
@@ -92,13 +117,12 @@ func doOneFrame(fName string) {
 	}
 	defer w.Close()
 
-	err = tiff.Encode(w, outImage, &tiff.Options{
+	err = tiff.Encode(w, i, &tiff.Options{
 		Compression: tiff.Deflate,
 		Predictor:   true,
 	})
 	if err != nil {
 		log.Println(err)
-		return
 	}
 }
 
