@@ -22,6 +22,8 @@ const (
 	bottomBorder = 5.0 / 18.0
 
 	sideBorder = 1.0 / 13.0
+
+	fileSuffix = "pola.tif"
 )
 
 func main() {
@@ -50,6 +52,10 @@ func worker(jobs chan string, wg *sync.WaitGroup) {
 }
 
 func doOneFrame(fname string) {
+	if strings.HasSuffix(fname, fileSuffix) {
+		return
+	}
+
 	f, err := os.Open(fname)
 	if err != nil {
 		log.Println(err)
@@ -78,7 +84,7 @@ func doOneFrame(fname string) {
 	draw.Copy(outImage, outBounds.Min, background, outBounds, draw.Over, nil)
 	draw.Copy(outImage, inBounds.Min, inImage, inBounds, draw.Over, nil)
 
-	fname = reSuffix(fname, "pola.tiff")
+	fname = reSuffix(fname, fileSuffix)
 	w, err := os.Create(fname)
 	if err != nil {
 		log.Println(err)
