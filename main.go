@@ -36,8 +36,8 @@ func main() {
 		go worker(jobs, wg)
 	}
 
-	for _, fname := range flag.Args() {
-		jobs <- fname
+	for _, fName := range flag.Args() {
+		jobs <- fName
 	}
 	close(jobs)
 	wg.Wait()
@@ -51,12 +51,12 @@ func worker(jobs chan string, wg *sync.WaitGroup) {
 	}
 }
 
-func doOneFrame(fname string) {
-	if strings.HasSuffix(fname, fileSuffix) {
+func doOneFrame(fName string) {
+	if strings.HasSuffix(fName, fileSuffix) {
 		return
 	}
 
-	f, err := os.Open(fname)
+	f, err := os.Open(fName)
 	if err != nil {
 		log.Println(err)
 		return
@@ -84,8 +84,8 @@ func doOneFrame(fname string) {
 	draw.Copy(outImage, outBounds.Min, background, outBounds, draw.Over, nil)
 	draw.Copy(outImage, inBounds.Min, inImage, inBounds, draw.Over, nil)
 
-	fname = reSuffix(fname, fileSuffix)
-	w, err := os.Create(fname)
+	fName = reSuffix(fName, fileSuffix)
+	w, err := os.Create(fName)
 	if err != nil {
 		log.Println(err)
 		return
@@ -102,8 +102,8 @@ func doOneFrame(fname string) {
 	}
 }
 
-func reSuffix(fname, suffix string) string {
-	segs := strings.Split(fname, ".")
+func reSuffix(fName, suffix string) string {
+	segs := strings.Split(fName, ".")
 	if len(segs) > 1 {
 		segs[len(segs)-1] = suffix
 	} else {
