@@ -1,5 +1,5 @@
 module github.com/rselph/polaframe
 
-go 1.17
+go 1.24.0
 
-require golang.org/x/image v0.0.0-20211028202545-6944b10bf410
+require golang.org/x/image v0.34.0
